@@ -1,25 +1,56 @@
 use std::iter::FromIterator;
+use std::borrow::Borrow;
+
+enum InternalType<T> {
+    Internal(Node<T>),
+}
+
+struct Node<T> {
+    data: T,
+    next: Option<Box<InternalType<T>>>,
+}
 
 pub struct SimpleLinkedList<T> {
-    // Delete this field
-    // dummy is needed to avoid unused parameter error during compilation
-    dummy: ::std::marker::PhantomData<T>,
+    head: Option<Node<T>>,
+    size: usize,
 }
 
 impl<T> SimpleLinkedList<T> {
     pub fn new() -> Self {
-        unimplemented!()
+        SimpleLinkedList {
+            head: None,
+            size: 0
+        }
     }
 
     pub fn len(&self) -> usize {
-        unimplemented!()
+        self.size
     }
 
-    pub fn push(&mut self, _element: T) {
-        unimplemented!()
+    pub fn push(&mut self, element: T) {
+        let new_end_node = Node {
+            data: element,
+            next: None,
+        };
+        if let Some(mut current) = self.head.as_mut() {
+            while current.next.is_some() {
+                let ljkadf = &mut **current.next.as_mut().unwrap();
+                if let InternalType::Internal(n) = ljkadf {
+                    current = n;
+                }
+            }
+            // when I get here that means current.next is None
+            current.next = Some(Box::new(InternalType::Internal(new_end_node)));
+        } else {
+            self.head = Some(new_end_node);
+        }
+
+        self.size.checked_add(1);
+        //unimplemented!()
     }
 
     pub fn pop(&mut self) -> Option<T> {
+        self.size.checked_rem(1);
         unimplemented!()
     }
 
