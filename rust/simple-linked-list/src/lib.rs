@@ -1,25 +1,29 @@
-use std::iter::FromIterator;
 use std::borrow::Borrow;
+use std::iter::FromIterator;
+use std::mem;
+use std::ops::Deref;
 
-enum InternalType<T> {
-    Internal(Node<T>),
+
+enum NodeType<T> {
+    Leaf,
+    Internal(Box<Node<T>>),
 }
 
 struct Node<T> {
     data: T,
-    next: Option<Box<InternalType<T>>>,
+    next: NodeType<T>,
 }
 
 pub struct SimpleLinkedList<T> {
-    head: Option<Node<T>>,
+    head: NodeType<T>,
     size: usize,
 }
 
 impl<T> SimpleLinkedList<T> {
     pub fn new() -> Self {
         SimpleLinkedList {
-            head: None,
-            size: 0
+            head: NodeType::Leaf,
+            size: 0,
         }
     }
 
@@ -28,44 +32,64 @@ impl<T> SimpleLinkedList<T> {
     }
 
     pub fn push(&mut self, element: T) {
-        let new_end_node = Node {
+        let new_end_node = Box::new(Node {
             data: element,
-            next: None,
-        };
-        if let Some(mut current) = self.head.as_mut() {
-            while current.next.is_some() {
-                let ljkadf = &mut **current.next.as_mut().unwrap();
-                if let InternalType::Internal(n) = ljkadf {
-                    current = n;
-                }
-            }
-            // when I get here that means current.next is None
-            current.next = Some(Box::new(InternalType::Internal(new_end_node)));
-        } else {
-            self.head = Some(new_end_node);
-        }
+            next: mem::replace(&mut self.head, NodeType::Leaf),
+        });
 
-        self.size.checked_add(1);
-        //unimplemented!()
+        self.head = NodeType::Internal(new_end_node);
+
+        self.size += 1;
     }
 
     pub fn pop(&mut self) -> Option<T> {
-        self.size.checked_rem(1);
-        unimplemented!()
+        match mem::replace(&mut self.head, NodeType::Leaf) {
+            NodeType::Internal(bb) => {
+                self.head = bb.next;
+                self.size -= 1;
+                Some(bb.data)
+            }
+            NodeType::Leaf => {
+                println!("here");
+                None
+            }
+        }
     }
 
     pub fn peek(&self) -> Option<&T> {
-        unimplemented!()
+        match &self.head {
+            NodeType::Internal(bb) => {
+                Some(&bb.data)
+            },
+            NodeType::Leaf => {
+                None
+            }
+        }
     }
 
     pub fn rev(self) -> SimpleLinkedList<T> {
-        unimplemented!()
+        let mut revved_list = SimpleLinkedList::new();
+
+        let mut current_head = self.head;
+        while let NodeType::Internal(bb) = current_head {
+            let value = bb.data;
+            revved_list.push(value);
+            current_head = bb.next;
+        }
+
+        revved_list
     }
 }
 
 impl<T> FromIterator<T> for SimpleLinkedList<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(_iter: I) -> Self {
-        unimplemented!()
+    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> Self {
+        let mut list = SimpleLinkedList::new();
+
+        for item in iter {
+            list.push(item);
+        }
+
+        list
     }
 }
 
@@ -82,6 +106,20 @@ impl<T> FromIterator<T> for SimpleLinkedList<T> {
 
 impl<T> Into<Vec<T>> for SimpleLinkedList<T> {
     fn into(self) -> Vec<T> {
-        unimplemented!()
+        let mut result = Vec::with_capacity(self.size);
+        let mut current_head = self.head;
+
+        // It is better to add element from back of vec so I dont have to reverse it.
+        // But to do that all I can think of is maintaining an index that keeps decrementing.
+        // That doesnt feel very....rusty.
+        // Is there a rusty way to do this?
+        while let NodeType::Internal(bb) = current_head {
+            let value = bb.data;
+            result.push(value);
+            current_head = bb.next;
+        }
+
+        result.reverse();
+        result
     }
 }
