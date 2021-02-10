@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="87ea3e3d-e079-4780-a71b-568a69861009" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="KotlinMultiplatform">
+    <allAvailableExecutables />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="d7xzbr55" />
+  </component>
+  <component name="ProjectId" id="1oGmnI4qC0v94uphBqiOyukKpjb" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="autoscrollToSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="ignore.virus.scanning.warn.message" value="true" />
+    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+  </component>
+  <component name="RunManager" selected="Cargo.Test neptune_age">
+    <configuration name="Test jupiter_age" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package space-age --test space-age jupiter_age -- --ignored --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test mars_age" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package space-age --test space-age mars_age -- --ignored --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test neptune_age" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package space-age --test space-age neptune_age -- --ignored --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test saturn_age" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package space-age --test space-age saturn_age -- --ignored --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Test uranus_age" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+      <option name="channel" value="DEFAULT" />
+      <option name="command" value="test --package space-age --test space-age uranus_age -- --ignored --exact" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Cargo.Test neptune_age" />
+        <item itemvalue="Cargo.Test uranus_age" />
+        <item itemvalue="Cargo.Test saturn_age" />
+        <item itemvalue="Cargo.Test jupiter_age" />
+        <item itemvalue="Cargo.Test mars_age" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="87ea3e3d-e079-4780-a71b-568a69861009" name="Default Changelist" comment="" />
+      <created>1612921466462</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1612921466462</updated>
+      <workItem from="1612921468554" duration="3090000" />
+    </task>
+    <task id="LOCAL-00001" summary="Initial commit for space age">
+      <created>1612921537240</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1612921537241</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+    <MESSAGE value="Initial commit for space age" />
+    <option name="LAST_COMMIT_MESSAGE" value="Initial commit for space age" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="1725" y="239" key="#com.intellij.ide.util.MemberChooser" timestamp="1612924454495">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state x="1725" y="239" key="#com.intellij.ide.util.MemberChooser/0.0.3840.1040@0.0.3840.1040" timestamp="1612924454495" />
+    <state x="1440" y="0" key="CommitChangelistDialog2" timestamp="1612921536751">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state x="1440" y="0" key="CommitChangelistDialog2/0.0.3840.1040@0.0.3840.1040" timestamp="1612921536751" />
+    <state width="1862" height="262" key="GridCell.Tab.0.bottom" timestamp="1612924728718">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state width="1862" height="262" key="GridCell.Tab.0.bottom/0.0.3840.1040@0.0.3840.1040" timestamp="1612924728718" />
+    <state width="1862" height="262" key="GridCell.Tab.0.center" timestamp="1612924728718">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state width="1862" height="262" key="GridCell.Tab.0.center/0.0.3840.1040@0.0.3840.1040" timestamp="1612924728718" />
+    <state width="1862" height="262" key="GridCell.Tab.0.left" timestamp="1612924728718">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state width="1862" height="262" key="GridCell.Tab.0.left/0.0.3840.1040@0.0.3840.1040" timestamp="1612924728718" />
+    <state width="1862" height="262" key="GridCell.Tab.0.right" timestamp="1612924728718">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state width="1862" height="262" key="GridCell.Tab.0.right/0.0.3840.1040@0.0.3840.1040" timestamp="1612924728718" />
+    <state x="1767" y="430" key="VCS.ChangelistChooser" timestamp="1612921507864">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state x="1767" y="430" key="VCS.ChangelistChooser/0.0.3840.1040@0.0.3840.1040" timestamp="1612921507864" />
+    <state x="1512" y="252" key="Vcs.Push.Dialog.v2" timestamp="1612921539222">
+      <screen x="0" y="0" width="3840" height="1040" />
+    </state>
+    <state x="1512" y="252" key="Vcs.Push.Dialog.v2/0.0.3840.1040@0.0.3840.1040" timestamp="1612921539222" />
+  </component>
+</project>
