@@ -31,32 +31,33 @@ pub fn sublist<'a, T: PartialEq>(mut fl: &'a [T], mut sl: &'a [T]) -> Comparison
 
 	let mut fi = 0;
 	let mut si = 0;
-	let mut found = false;
 
-	while si < sl.len() && !found {
-		for (i, e) in sl[si..].iter().enumerate() {
-			if fl[fi] == *e && !found {
-				while fi < fl.len() && fl[fi] == sl[si] {
-					fi.checked_add(1);
-					si.checked_add(1);
-				}
+	let mut result = Comparison::Unequal;
 
-				if fi == fl.len() {
-					found = true;
+	while si < sl.len() {
+		if fl[fi] == sl[si] {
+			// increment fi
+			fi = fi + 1;
+		} else {
+			//reset fi. keep si same
+			fi = 0;
+		}
+		if fi == fl.len() {
+			if fl.len() == sl.len() {
+				result = Comparison::Equal;
+			} else {
+				if flipped {
+					//superlist
+					result = Comparison::Superlist;
 				} else {
-					fi = 0; //reset
+					//sublist
+					result = Comparison::Sublist;
 				}
 			}
+			break;
 		}
+		si = si + 1;
 	}
 
-	if found && flipped {
-		Comparison::Superlist
-	} else if found && !flipped {
-		Comparison::Sublist
-	} else if !found {
-		Comparison::Unequal
-	} else {
-		Comparison::Equal
-	}
+	result
 }
