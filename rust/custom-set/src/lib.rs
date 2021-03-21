@@ -38,6 +38,7 @@ impl<T: Copy + Eq + Hash> CustomSet<T> {
 			let rc_value = Rc::new(MY_VALUE);
 			self.internal.insert(e, Rc::clone(&rc_value));
 		} else {
+			//sj_todo fix this warning
 			let first = self.internal.iter().next();
 			let rc_value = first.unwrap().1;
 			self.internal.insert(e, Rc::clone(&rc_value));
@@ -46,12 +47,9 @@ impl<T: Copy + Eq + Hash> CustomSet<T> {
 
 	pub fn is_subset(&self, other: &Self) -> bool {
 		match (self.internal.len(), other.internal.len()) {
-			(0, 0) => {
+			(0, 0) | (0, _) => {
 				true
-			}
-			(0, _) => {
-				true
-			}
+			},
 			(_, 0) => {
 				false
 			}
@@ -65,20 +63,48 @@ impl<T: Copy + Eq + Hash> CustomSet<T> {
 		self.internal.is_empty()
 	}
 
-	pub fn is_disjoint(&self, _other: &Self) -> bool {
-		unimplemented!();
+	pub fn is_disjoint(&self, other: &Self) -> bool {
+		match (self.internal.len(), other.internal.len()) {
+			(0, 0) | (0, _) | (_, 0) => {
+				true
+			},
+			(_, _) => {
+				!self.internal.keys().any(|k| other.internal.contains_key(k))
+			}
+		}
 	}
 
-	pub fn intersection(&self, _other: &Self) -> Self {
-		unimplemented!();
+	pub fn intersection(&self, other: &Self) -> Self {
+		match (self.internal.len(), other.internal.len()) {
+			(0, _) | (_, 0) => {
+				CustomSet {
+					internal: HashMap::new(),
+				}
+			},
+			(_, _) => {
+				let common: Vec<T> = self.internal.keys().filter(|k| other.internal.contains_key(*k)).cloned().collect();
+				Self::new(common.as_slice())
+			}
+		}
 	}
 
-	pub fn difference(&self, _other: &Self) -> Self {
-		unimplemented!();
+	pub fn difference(&self, other: &Self) -> Self {
+		match (self.internal.len(), other.internal.len()) {
+			(0, _) => {
+				Self::new(&[])
+			},
+			(_, 0) => {
+				let difference: Vec<T> = self.internal.keys().cloned().collect();
+				Self::new(difference.as_slice())
+			},
+			(_, _) => {
+				let difference: Vec<T> = self.internal.keys().filter(|k| !other.internal.contains_key(*k)).cloned().collect();
+				Self::new(difference.as_slice())
+			}
+		}
 	}
 
 	pub fn union(&self, other: &Self) -> Self {
-
 		let mut internal = HashMap::new();
 		for (k, v) in &self.internal {
 			internal.insert(*k, Rc::clone(v));
