@@ -1,47 +1,28 @@
-use std::collections::HashMap;
-use std::rc::Rc;
-use std::hash::Hash;
-
-const MY_VALUE: u32 = 1;
-
 #[derive(Debug)]
-pub struct CustomSet<T: Copy + Eq + Hash> {
-	internal: HashMap<T, Rc<u32>>
+pub struct CustomSet<T: Copy + Eq  + Ord> {
+	internal: Vec<T>
 }
 
-impl<T: Copy + Eq + Hash> PartialEq for CustomSet<T> {
+impl<T: Copy + Eq  + Ord> PartialEq for CustomSet<T> {
 	fn eq(&self, other: &Self) -> bool {
-		self.internal.len() == other.internal.len() && self.internal.keys().all(|k| other.internal.contains_key(k))
+		self.internal.len() == other.internal.len() && self.internal.iter().all(|k| other.internal.contains(k))
 	}
 }
 
-impl<T: Copy + Eq + Hash> CustomSet<T> {
+impl<T: Copy + Eq  + Ord> CustomSet<T> {
 	pub fn new(input: &[T]) -> Self {
-		let mut internal = HashMap::new();
-		if !input.is_empty() {
-			let rc_value = Rc::new(MY_VALUE);
-			for e in input {
-				internal.insert(*e, Rc::clone(&rc_value));
-			}
-		}
 		CustomSet {
-			internal
+			internal: input.to_vec()
 		}
 	}
 
-	pub fn contains(&self, e: &T) -> bool {
-		self.internal.contains_key(e)
+	pub fn contains(&self, element: &T) -> bool {
+		self.internal.binary_search(element).is_ok()
 	}
 
 	pub fn add(&mut self, e: T) {
-		if self.internal.is_empty() {
-			let rc_value = Rc::new(MY_VALUE);
-			self.internal.insert(e, Rc::clone(&rc_value));
-		} else {
-			//sj_todo fix this warning
-			let first = self.internal.iter().next();
-			let rc_value = first.unwrap().1;
-			self.internal.insert(e, Rc::clone(&rc_value));
+		if self.internal.binary_search(&e).is_err() {
+			self.internal.push(e);
 		}
 	}
 
@@ -54,7 +35,7 @@ impl<T: Copy + Eq + Hash> CustomSet<T> {
 				false
 			}
 			(_, _) => {
-				self.internal.keys().all(|k| other.internal.contains_key(k))
+				self.internal.iter().all(|k| other.internal.contains(k))
 			}
 		}
 	}
@@ -69,7 +50,7 @@ impl<T: Copy + Eq + Hash> CustomSet<T> {
 				true
 			},
 			(_, _) => {
-				!self.internal.keys().any(|k| other.internal.contains_key(k))
+				!self.internal.iter().any(|k| other.internal.contains(k))
 			}
 		}
 	}
@@ -78,12 +59,19 @@ impl<T: Copy + Eq + Hash> CustomSet<T> {
 		match (self.internal.len(), other.internal.len()) {
 			(0, _) | (_, 0) => {
 				CustomSet {
-					internal: HashMap::new(),
+					internal: Vec::new()
 				}
 			},
 			(_, _) => {
-				let common: Vec<T> = self.internal.keys().filter(|k| other.internal.contains_key(*k)).cloned().collect();
-				Self::new(common.as_slice())
+				let mut intersection = Vec::new();
+				for element in self.internal.iter() {
+					if other.internal.contains(element) {
+						intersection.push(*element);
+					}
+				}
+				CustomSet {
+					internal: intersection
+				}
 			}
 		}
 	}
@@ -94,23 +82,33 @@ impl<T: Copy + Eq + Hash> CustomSet<T> {
 				Self::new(&[])
 			},
 			(_, 0) => {
-				let difference: Vec<T> = self.internal.keys().cloned().collect();
-				Self::new(difference.as_slice())
+				Self::new(self.internal.as_slice())
 			},
 			(_, _) => {
-				let difference: Vec<T> = self.internal.keys().filter(|k| !other.internal.contains_key(*k)).cloned().collect();
-				Self::new(difference.as_slice())
+				let mut difference = Vec::new();
+				for element in self.internal.iter() {
+					if !other.internal.contains(element) {
+						difference.push(*element);
+					}
+				}
+				CustomSet {
+					internal: difference
+				}
 			}
 		}
 	}
 
 	pub fn union(&self, other: &Self) -> Self {
-		let mut internal = HashMap::new();
-		for (k, v) in &self.internal {
-			internal.insert(*k, Rc::clone(v));
+		let mut internal = Vec::new();
+		for k in self.internal.iter() {
+			if !internal.contains(k) {
+				internal.push(*k);
+			}
 		}
-		for (k, v) in &other.internal {
-			internal.insert(*k, Rc::clone(v));
+		for k in other.internal.iter() {
+			if !internal.contains(k) {
+				internal.push(*k);
+			}
 		}
 
 		CustomSet {
