@@ -90,7 +90,6 @@ fn horizontal_line() {
 }
 
 #[test]
-#[ignore]
 fn horizontal_line_mines_at_edges() {
     #[rustfmt::skip]
     run_test(&[
