@@ -1,7 +1,7 @@
 pub fn encode(source: &str) -> String {
     let source = source.to_owned() + "0";
     let mut count = 1;
-    let mut result = String::from("");
+    let mut result = String::new();
 
     for (f, s) in source.chars().zip(source.chars().skip(1)) {
         if f == s {
