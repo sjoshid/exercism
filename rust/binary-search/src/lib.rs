@@ -1,8 +1,13 @@
-pub fn find(array: &[i32], key: i32) -> Option<usize> {
+pub fn find<T, V>(array: V, key: T) -> Option<usize>
+where
+    T: Ord,
+    V: AsRef<[T]>,
+{
     let mut result = None;
+    let array = array.as_ref();
     if !array.is_empty() {
-        let mut left = 0 as usize;
-        let mut right = array.len() - 1 as usize;
+        let mut left = 0;
+        let mut right = array.len() - 1;
 
         while left < right {
             let half = left + ((right - left) >> 1);
