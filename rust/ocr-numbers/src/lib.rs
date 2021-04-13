@@ -12,7 +12,6 @@ pub fn convert(input: &str) -> Result<String, Error> {
     let mut results = Vec::new();
 
     for line in lines.chunks(4) {
-        println!("{:?}", line);
         let mut digits_on_same_line = String::new();
         if line.len() % 4 != 0 {
             return Err(Error::InvalidRowCount(line.len()));
@@ -58,6 +57,5 @@ fn check_for_digit(check_for_digit: &str) -> &str {
         " _ |_| _|   " => "9",
         _ => "?",
     };
-    println!("digit found: {}", digit);
     digit
 }
