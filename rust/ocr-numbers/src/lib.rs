@@ -1,10 +1,6 @@
 // The code below is a stub. Just enough to satisfy the compiler.
 // In order to pass the tests you can add-to or change any of this code.
 
-pub struct Input<'a> {
-    input: &'a str,
-}
-
 #[derive(Debug, PartialEq)]
 pub enum Error {
     InvalidRowCount(usize),
@@ -18,14 +14,15 @@ pub fn convert(input: &str) -> Result<String, Error> {
     for line in lines.chunks(4) {
         println!("{:?}", line);
         let mut digits_on_same_line = String::new();
-        if line.len() < 4
-            || !(line[0].len() == line[1].len() && line[1].len() == line[2].len() && line[2].len() == line[3].len())
+        if line.len() % 4 != 0 {
+            return Err(Error::InvalidRowCount(line.len()));
+        } else if !(line[0].len() == line[1].len() && line[1].len() == line[2].len() && line[2].len() == line[3].len())
             || (line[0].len() % 3 != 0)
             || (line[1].len() % 3 != 0)
             || (line[2].len() % 3 != 0)
             || (line[3].len() % 3 != 0)
         {
-            //println!("Invalid input");
+            return Err(Error::InvalidColumnCount(line[0].len()));
         } else {
             for i in (0..line[0].len()).step_by(3) {
                 let current = *line.get(0).unwrap(); // row 1
@@ -44,7 +41,7 @@ pub fn convert(input: &str) -> Result<String, Error> {
             results.push(digits_on_same_line);
         }
     }
-    Ok(results.join(","))
+    return Ok(results.join(","));
 }
 
 fn check_for_digit(check_for_digit: &str) -> &str {
