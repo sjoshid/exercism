@@ -2,12 +2,7 @@ use std::borrow::Borrow;
 use std::iter::FromIterator;
 use std::mem;
 use std::ops::Deref;
-
-
-enum NodeType<T> {
-    Leaf,
-    Internal(Box<Node<T>>),
-}
+type NodeType<T> = Option<Box<Node<T>>>;
 
 struct Node<T> {
     data: T,
@@ -21,10 +16,7 @@ pub struct SimpleLinkedList<T> {
 
 impl<T> SimpleLinkedList<T> {
     pub fn new() -> Self {
-        SimpleLinkedList {
-            head: NodeType::Leaf,
-            size: 0,
-        }
+        SimpleLinkedList { head: None, size: 0 }
     }
 
     pub fn len(&self) -> usize {
@@ -34,55 +26,50 @@ impl<T> SimpleLinkedList<T> {
     pub fn push(&mut self, element: T) {
         let new_end_node = Box::new(Node {
             data: element,
-            next: mem::replace(&mut self.head, NodeType::Leaf),
+            next: self.head.take(),
         });
 
-        self.head = NodeType::Internal(new_end_node);
-
+        self.head = Some(new_end_node);
         self.size += 1;
     }
 
     pub fn pop(&mut self) -> Option<T> {
-        match mem::replace(&mut self.head, NodeType::Leaf) {
-            NodeType::Internal(bb) => {
-                self.head = bb.next;
-                self.size -= 1;
-                Some(bb.data)
-            }
-            NodeType::Leaf => {
-                println!("here");
-                None
-            }
-        }
+        self.head.take().map(|node| {
+            self.head = node.next;
+            self.size -= 1;
+            node.data
+        })
     }
 
     pub fn peek(&self) -> Option<&T> {
-        match &self.head {
-            NodeType::Internal(bb) => {
-                Some(&bb.data)
-            },
-            NodeType::Leaf => {
-                None
-            }
-        }
+        self.head.as_ref().map(|node| {
+            &node.data
+        })
     }
 
-    pub fn rev(self) -> SimpleLinkedList<T> {
-        let mut revved_list = SimpleLinkedList::new();
+    pub fn rev(mut self) -> SimpleLinkedList<T> {
+        let mut previous = None;
+        let mut size = 0 as usize;
 
-        let mut current_head = self.head;
-        while let NodeType::Internal(bb) = current_head {
-            let value = bb.data;
-            revved_list.push(value);
-            current_head = bb.next;
+        while self.head.is_some() {
+            let mut h = None;
+            let mut n = self.head.as_mut().unwrap();
+            h = n.next.take();
+            n.next = previous;
+            previous = self.head;
+            self.head = h;
+            size += 1;
         }
 
-        revved_list
+        SimpleLinkedList {
+            head: previous,
+            size,
+        }
     }
 }
 
 impl<T> FromIterator<T> for SimpleLinkedList<T> {
-    fn from_iter<I: IntoIterator<Item=T>>(iter: I) -> Self {
+    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut list = SimpleLinkedList::new();
 
         for item in iter {
@@ -105,21 +92,44 @@ impl<T> FromIterator<T> for SimpleLinkedList<T> {
 // demands more of the student than we expect at this point in the track.
 
 impl<T> Into<Vec<T>> for SimpleLinkedList<T> {
-    fn into(self) -> Vec<T> {
-        let mut result = Vec::with_capacity(self.size);
-        let mut current_head = self.head;
+    fn into(mut self) -> Vec<T> {
+        let mut result = Vec::new();
 
         // It is better to add element from back of vec so I dont have to reverse it.
         // But to do that all I can think of is maintaining an index that keeps decrementing.
         // That doesnt feel very....rusty.
         // Is there a rusty way to do this?
-        while let NodeType::Internal(bb) = current_head {
-            let value = bb.data;
-            result.push(value);
-            current_head = bb.next;
+        while let Some(n) = self.pop() {
+            result.push(n);
         }
 
         result.reverse();
         result
+    }
+}
+
+pub struct IteratorForList<T> {
+    current_node: NodeType<T>,
+}
+
+impl <T> Iterator for IteratorForList<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.current_node.take().map(|node| {
+            self.current_node = node.next;
+            node.data
+        })
+    }
+}
+
+impl <T> IntoIterator for SimpleLinkedList<T> {
+    type Item = T;
+    type IntoIter = IteratorForList<T>;
+
+    fn into_iter(mut self) -> Self::IntoIter {
+        IteratorForList {
+            current_node: self.head
+        }
     }
 }

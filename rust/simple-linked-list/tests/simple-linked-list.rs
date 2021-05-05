@@ -48,11 +48,17 @@ fn test_peek_returns_reference_to_head_element_but_does_not_remove_it() {
     assert_eq!(list.peek(), Some(&2), "Element must be 2");
     assert_eq!(list.peek(), Some(&2), "Element must be still 2");
     list.push(3);
-    assert_eq!(list.peek(), Some(&3), "Head element is now 3");
-    assert_eq!(list.pop(), Some(3), "Element must be 3");
-    assert_eq!(list.peek(), Some(&2), "Head element is now 2");
-    assert_eq!(list.pop(), Some(2), "Element must be 2");
-    assert_eq!(list.peek(), None, "No element should be contained in list");
+    list.push(4);
+    assert_eq!(list.peek(), Some(&4), "Head element is now 4");
+
+    let mut reversed = list.rev();
+    assert_eq!(reversed.peek(), Some(&2), "Element must be 2");
+    assert_eq!(reversed.pop(), Some(2), "Element must be 2");
+    assert_eq!(reversed.peek(), Some(&3), "Head element is now 3");
+    assert_eq!(reversed.pop(), Some(3), "Element must be 3");
+    assert_eq!(reversed.peek(), Some(&4), "Head element is now 4");
+    assert_eq!(reversed.pop(), Some(4), "Element must be 4");
+    assert_eq!(reversed.len(), 0, "Size must be 0");
 }
 
 #[test]
