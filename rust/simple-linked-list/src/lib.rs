@@ -53,7 +53,7 @@ impl<T> SimpleLinkedList<T> {
 
         while self.head.is_some() {
             let mut h = None;
-            let mut n = self.head.as_mut().unwrap();
+            let n = self.head.as_mut().unwrap();
             h = n.next.take();
             n.next = previous;
             previous = self.head;

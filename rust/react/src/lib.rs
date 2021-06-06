@@ -1,6 +1,10 @@
+use std::collections::HashMap;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 /// `InputCellID` is a unique identifier for an input cell.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct InputCellID();
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct InputCellID(usize);
+
 /// `ComputeCellID` is a unique identifier for a compute cell.
 /// Values of type `InputCellID` and `ComputeCellID` should not be mutually assignable,
 /// demonstrated by the following tests:
@@ -15,8 +19,8 @@ pub struct InputCellID();
 /// let input = r.create_input(111);
 /// let compute: react::InputCellID = r.create_compute(&[react::CellID::Input(input)], |_| 222).unwrap();
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct ComputeCellID();
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ComputeCellID(usize);
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CallbackID();
 
@@ -32,21 +36,31 @@ pub enum RemoveCallbackError {
     NonexistentCallback,
 }
 
+// Shameless copy from Rust forum. https://users.rust-lang.org/t/idiomatic-rust-way-to-generate-unique-id/33805/6
+fn get_id() -> usize {
+    static COUNTER: AtomicUsize = AtomicUsize::new(1); //static is crazy.
+    COUNTER.fetch_add(1, Ordering::Relaxed)
+}
+
 pub struct Reactor<T> {
-    // Just so that the compiler doesn't complain about an unused type parameter.
-    // You probably want to delete this field.
-    dummy: ::std::marker::PhantomData<T>,
+    input_cell_map: HashMap<InputCellID, T>,
+    compute_cell_map: HashMap<ComputeCellID, T>,
 }
 
 // You are guaranteed that Reactor will only be tested against types that are Copy + PartialEq.
 impl<T: Copy + PartialEq> Reactor<T> {
     pub fn new() -> Self {
-        unimplemented!()
+        Reactor {
+            input_cell_map: HashMap::new(),
+            compute_cell_map: HashMap::new(),
+        }
     }
 
     // Creates an input cell with the specified initial value, returning its ID.
-    pub fn create_input(&mut self, _initial: T) -> InputCellID {
-        unimplemented!()
+    pub fn create_input(&mut self, initial: T) -> InputCellID {
+        let id = InputCellID(get_id());
+        self.input_cell_map.insert(id, initial);
+        id
     }
 
     // Creates a compute cell with the specified dependencies and compute function.
@@ -78,7 +92,14 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // It turns out this introduces a significant amount of extra complexity to this exercise.
     // We chose not to cover this here, since this exercise is probably enough work as-is.
     pub fn value(&self, id: CellID) -> Option<T> {
-        unimplemented!("Get the value of the cell whose id is {:?}", id)
+        match id {
+            CellID::Input(input_cell_id) => {
+                self.input_cell_map.get(&input_cell_id).cloned()
+            },
+            CellID::Compute(compute_cell_id) => {
+                self.compute_cell_map.get(&compute_cell_id).cloned()
+            }
+        }
     }
 
     // Sets the value of the specified input cell.
@@ -89,8 +110,13 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // a `set_value(&mut self, new_value: T)` method on `Cell`.
     //
     // As before, that turned out to add too much extra complexity.
-    pub fn set_value(&mut self, _id: InputCellID, _new_value: T) -> bool {
-        unimplemented!()
+    pub fn set_value(&mut self, id: InputCellID, value: T) -> bool {
+        if self.input_cell_map.contains_key(&id) {
+            self.input_cell_map.entry(id).and_modify(|v| *v = value);
+            true
+        } else {
+            false
+        }
     }
 
     // Adds a callback to the specified compute cell.
