@@ -1,4 +1,6 @@
+use std::borrow::BorrowMut;
 use std::collections::HashMap;
+use std::path::Prefix::Verbatim;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 /// `InputCellID` is a unique identifier for an input cell.
@@ -42,13 +44,68 @@ fn get_id() -> usize {
     COUNTER.fetch_add(1, Ordering::Relaxed)
 }
 
-pub struct Reactor<T> {
-    input_cell_map: HashMap<InputCellID, T>,
-    compute_cell_map: HashMap<ComputeCellID, T>,
+#[derive(Clone, Debug)]
+struct ComputeCell<'a, T> {
+    value: T,
+    dependents: Option<Vec<&'a ComputeCell<'a, T>>>,
+}
+
+impl<'a, T> ComputeCell<'a, T> where T: Copy + Clone {
+    pub fn new(value: T) -> (ComputeCellID, Self) {
+        (
+            ComputeCellID(get_id()),
+            ComputeCell {
+                value,
+                dependents: None,
+            },
+        )
+    }
+
+    pub fn add_dep(&mut self, cc: &'a ComputeCell<'a, T>) {
+        if self.dependents.is_none() {
+            let mut vec = Vec::new();
+            vec.push(cc);
+            self.dependents = Option::from(vec);
+        } else {
+            let mut vec = self.dependents.as_mut().unwrap();
+            vec.push(cc);
+        }
+    }
+
+    pub fn value(&self) -> T {
+        self.value
+    }
+}
+
+#[derive(Clone, Debug)]
+struct InputCell<'a, T> {
+    value: T,
+    dependents: Option<Vec<&'a ComputeCell<'a, T>>>,
+}
+
+impl<'a, T> InputCell<'a, T> where T: Copy + Clone {
+    pub fn new(value: T) -> (InputCellID, Self) {
+        (
+            InputCellID(get_id()),
+            InputCell {
+                value,
+                dependents: None,
+            },
+        )
+    }
+
+    pub fn value(&self) -> T {
+        self.value
+    }
+}
+
+pub struct Reactor<'a, T> {
+    input_cell_map: HashMap<InputCellID, InputCell<'a, T>>,
+    compute_cell_map: HashMap<ComputeCellID, ComputeCell<'a, T>>,
 }
 
 // You are guaranteed that Reactor will only be tested against types that are Copy + PartialEq.
-impl<T: Copy + PartialEq> Reactor<T> {
+impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
     pub fn new() -> Self {
         Reactor {
             input_cell_map: HashMap::new(),
@@ -58,9 +115,9 @@ impl<T: Copy + PartialEq> Reactor<T> {
 
     // Creates an input cell with the specified initial value, returning its ID.
     pub fn create_input(&mut self, initial: T) -> InputCellID {
-        let id = InputCellID(get_id());
-        self.input_cell_map.insert(id, initial);
-        id
+        let ic = InputCell::new(initial);
+        self.input_cell_map.insert(ic.0, ic.1);
+        ic.0
     }
 
     // Creates a compute cell with the specified dependencies and compute function.
@@ -78,10 +135,27 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // time they will continue to exist as long as the Reactor exists.
     pub fn create_compute<F: Fn(&[T]) -> T>(
         &mut self,
-        _dependencies: &[CellID],
-        _compute_func: F,
+        dependencies: &[CellID],
+        compute_func: F,
     ) -> Result<ComputeCellID, CellID> {
-        unimplemented!()
+        let mut values: Vec<T> = Vec::with_capacity(dependencies.len());
+        for dep in dependencies {
+            match dep {
+                CellID::Input(input_cell_id) => {
+                    let v = self.input_cell_map.get(input_cell_id).cloned().unwrap(); //sj_todo danger
+                    values.push(v.value());
+                }
+                CellID::Compute(compute_cell_id) => {
+                    let v = self.compute_cell_map.get(compute_cell_id).cloned().unwrap(); //sj_todo danger
+                    values.push(v.value());
+                }
+            }
+        }
+        //sj_todo handle panics
+        let computed_value = compute_func(values.as_ref());
+        let cc = ComputeCell::new(computed_value);
+        self.compute_cell_map.insert(cc.0, cc.1);
+        Ok(cc.0)
     }
 
     // Retrieves the current value of the cell, or None if the cell does not exist.
@@ -92,14 +166,13 @@ impl<T: Copy + PartialEq> Reactor<T> {
     // It turns out this introduces a significant amount of extra complexity to this exercise.
     // We chose not to cover this here, since this exercise is probably enough work as-is.
     pub fn value(&self, id: CellID) -> Option<T> {
-        match id {
-            CellID::Input(input_cell_id) => {
-                self.input_cell_map.get(&input_cell_id).cloned()
-            },
+        /*match id {
+            CellID::Input(input_cell_id) => self.input_cell_map.get(&input_cell_id).cloned(),
             CellID::Compute(compute_cell_id) => {
                 self.compute_cell_map.get(&compute_cell_id).cloned()
             }
-        }
+        }*/
+        todo!()
     }
 
     // Sets the value of the specified input cell.
@@ -111,12 +184,13 @@ impl<T: Copy + PartialEq> Reactor<T> {
     //
     // As before, that turned out to add too much extra complexity.
     pub fn set_value(&mut self, id: InputCellID, value: T) -> bool {
-        if self.input_cell_map.contains_key(&id) {
+        /*if self.input_cell_map.contains_key(&id) {
             self.input_cell_map.entry(id).and_modify(|v| *v = value);
             true
         } else {
             false
-        }
+        }*/
+        todo!()
     }
 
     // Adds a callback to the specified compute cell.
