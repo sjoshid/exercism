@@ -44,33 +44,39 @@ fn get_id() -> usize {
     COUNTER.fetch_add(1, Ordering::Relaxed)
 }
 
-#[derive(Clone, Debug)]
-struct ComputeCell<'a, T> {
+struct ComputeCell<T> {
     value: T,
-    dependents: Option<Vec<&'a ComputeCell<'a, T>>>,
+    dependents: Option<Vec<ComputeCellID>>,
+    closure: Box<dyn Fn(&[T]) -> T>
 }
 
-impl<'a, T> ComputeCell<'a, T> where T: Copy + Clone {
-    pub fn new(value: T) -> (ComputeCellID, Self) {
+impl<T> ComputeCell<T>
+where
+    T: Copy + Clone
+{
+    pub fn new<F: Fn(&[T]) -> T + 'static>(value: T, function: F) -> (ComputeCellID, Self) {
         (
             ComputeCellID(get_id()),
             ComputeCell {
                 value,
                 dependents: None,
+                closure: Box::new(function),
             },
         )
     }
 
-    pub fn add_dep(&mut self, cc: &'a ComputeCell<'a, T>) {
-        if self.dependents.is_none() {
-            let mut vec = Vec::new();
-            vec.push(cc);
-            self.dependents = Option::from(vec);
+    pub fn add_dep(&mut self, id: ComputeCellID) {
+        if let Some(d) = self.dependents.as_mut() {
+            d.push(id);
         } else {
-            let mut vec = self.dependents.as_mut().unwrap();
-            vec.push(cc);
+            let mut d = Vec::new();
+            d.push(id);
+            self.dependents = Some(d);
         }
     }
+
+    pub fn calculate_value() {}
+
 
     pub fn value(&self) -> T {
         self.value
@@ -78,12 +84,15 @@ impl<'a, T> ComputeCell<'a, T> where T: Copy + Clone {
 }
 
 #[derive(Clone, Debug)]
-struct InputCell<'a, T> {
+struct InputCell<T> {
     value: T,
-    dependents: Option<Vec<&'a ComputeCell<'a, T>>>,
+    dependents: Option<Vec<ComputeCellID>>,
 }
 
-impl<'a, T> InputCell<'a, T> where T: Copy + Clone {
+impl<T> InputCell<T>
+where
+    T: Copy + Clone,
+{
     pub fn new(value: T) -> (InputCellID, Self) {
         (
             InputCellID(get_id()),
@@ -97,15 +106,25 @@ impl<'a, T> InputCell<'a, T> where T: Copy + Clone {
     pub fn value(&self) -> T {
         self.value
     }
+
+    pub fn add_dep(&mut self, id: ComputeCellID) {
+        if let Some(d) = self.dependents.as_mut() {
+            d.push(id);
+        } else {
+            let mut d = Vec::new();
+            d.push(id);
+            self.dependents = Some(d);
+        }
+    }
 }
 
-pub struct Reactor<'a, T> {
-    input_cell_map: HashMap<InputCellID, InputCell<'a, T>>,
-    compute_cell_map: HashMap<ComputeCellID, ComputeCell<'a, T>>,
+pub struct Reactor<T> {
+    input_cell_map: HashMap<InputCellID, InputCell<T>>,
+    compute_cell_map: HashMap<ComputeCellID, ComputeCell<T>>,
 }
 
 // You are guaranteed that Reactor will only be tested against types that are Copy + PartialEq.
-impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
+impl<T: Copy + PartialEq> Reactor<T> {
     pub fn new() -> Self {
         Reactor {
             input_cell_map: HashMap::new(),
@@ -133,7 +152,7 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
     // Notice that there is no way to *remove* a cell.
     // This means that you may assume, without checking, that if the dependencies exist at creation
     // time they will continue to exist as long as the Reactor exists.
-    pub fn create_compute<F: Fn(&[T]) -> T>(
+    pub fn create_compute<F: Fn(&[T]) -> T + 'static>(
         &mut self,
         dependencies: &[CellID],
         compute_func: F,
@@ -146,15 +165,29 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
                     values.push(v.value());
                 }
                 CellID::Compute(compute_cell_id) => {
-                    let v = self.compute_cell_map.get(compute_cell_id).cloned().unwrap(); //sj_todo danger
-                    values.push(v.value());
+                    /*let v = self.compute_cell_map.get(compute_cell_id).cloned().unwrap(); //sj_todo danger
+                    values.push(v.value());*/
                 }
             }
         }
         //sj_todo handle panics
         let computed_value = compute_func(values.as_ref());
-        let cc = ComputeCell::new(computed_value);
+        let cc = ComputeCell::new(computed_value, compute_func);
         self.compute_cell_map.insert(cc.0, cc.1);
+
+        for dep in dependencies {
+            match dep {
+                CellID::Input(input_cell_id) => {
+                    let v = self.input_cell_map.get_mut(input_cell_id).unwrap(); //sj_todo danger
+                    v.add_dep(cc.0);
+                }
+                CellID::Compute(compute_cell_id) => {
+                    let v = self.compute_cell_map.get_mut(compute_cell_id).unwrap(); //sj_todo danger
+                    v.add_dep(cc.0);
+                }
+            }
+        }
+
         Ok(cc.0)
     }
 
@@ -166,13 +199,15 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
     // It turns out this introduces a significant amount of extra complexity to this exercise.
     // We chose not to cover this here, since this exercise is probably enough work as-is.
     pub fn value(&self, id: CellID) -> Option<T> {
-        /*match id {
-            CellID::Input(input_cell_id) => self.input_cell_map.get(&input_cell_id).cloned(),
-            CellID::Compute(compute_cell_id) => {
-                self.compute_cell_map.get(&compute_cell_id).cloned()
+        match id {
+            CellID::Input(input_cell_id) => {
+                self.input_cell_map.get(&input_cell_id).map(|v| v.value())
             }
-        }*/
-        todo!()
+            CellID::Compute(compute_cell_id) => self
+                .compute_cell_map
+                .get(&compute_cell_id)
+                .map(|v| v.value()),
+        }
     }
 
     // Sets the value of the specified input cell.
@@ -184,12 +219,19 @@ impl<'a, T: Copy + PartialEq> Reactor<'a, T> {
     //
     // As before, that turned out to add too much extra complexity.
     pub fn set_value(&mut self, id: InputCellID, value: T) -> bool {
-        /*if self.input_cell_map.contains_key(&id) {
-            self.input_cell_map.entry(id).and_modify(|v| *v = value);
-            true
-        } else {
-            false
-        }*/
+        if let Some(ic) = self.input_cell_map.get_mut(&id) {
+            if value != ic.value {
+                ic.value = value;
+
+                if let Some(deps) = ic.dependents.as_mut() {
+                    for dep in deps {
+                        if let Some(cc) = self.compute_cell_map.get_mut(dep) {
+
+                        }
+                    }
+                }
+            }
+        }
         todo!()
     }
 
