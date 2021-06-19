@@ -58,11 +58,11 @@ pub enum CellTypes<T> {
     ComputeCell(ComputeCell<T>),
 }
 
-impl <T: Copy + PartialEq> CellTypes<T> {
+impl<T: Copy + PartialEq> CellTypes<T> {
     pub fn get_value(&self) -> T {
         match self {
-            CellTypes::InputCell(ic) => {ic.get_value()}
-            CellTypes::ComputeCell(cc) => {cc.get_value()}
+            CellTypes::InputCell(ic) => ic.get_value(),
+            CellTypes::ComputeCell(cc) => cc.get_value(),
         }
     }
 }
