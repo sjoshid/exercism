@@ -1,5 +1,5 @@
 use crate::get_id;
-use crate::second_attempt::{Cell, CellID, InputCellID, CellTypes};
+use crate::second_attempt::{Cell, CellID, CellTypes, InputCellID};
 
 pub struct InputCell<T> {
     id: usize,

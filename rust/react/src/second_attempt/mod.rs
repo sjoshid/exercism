@@ -58,6 +58,15 @@ pub enum CellTypes<T> {
     ComputeCell(ComputeCell<T>),
 }
 
+impl <T: Copy + PartialEq> CellTypes<T> {
+    pub fn get_value(&self) -> T {
+        match self {
+            CellTypes::InputCell(ic) => {ic.get_value()}
+            CellTypes::ComputeCell(cc) => {cc.get_value()}
+        }
+    }
+}
+
 pub struct Reactor<T> {
     big_vec: Vec<CellTypes<T>>,
 }
@@ -81,5 +90,13 @@ impl<T: Copy + PartialEq> Reactor<T> {
         compute_func: F,
     ) -> Result<ComputeCellID, CellID> {
         ComputeCell::new(dependencies, compute_func, &mut self.big_vec)
+    }
+
+    pub fn value(&self, id: CellID) -> Option<T> {
+        if let Some(cell) = self.big_vec.get(id.get_id()) {
+            Some(cell.get_value())
+        } else {
+            None
+        }
     }
 }
