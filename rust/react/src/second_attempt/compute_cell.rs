@@ -9,33 +9,59 @@ pub struct ComputeCell<T> {
 }
 
 impl<T: Copy + PartialEq> ComputeCell<T> {
-    pub fn new<F: Fn(&[T]) -> T>(deps: &[CellID], f: F, reactor: &mut Vec<CellTypes<T>>) -> Result<ComputeCellID, CellID> {
+    pub fn new<F: Fn(&[T]) -> T>(
+        deps: &[CellID],
+        f: F,
+        reactor: &mut Vec<CellTypes<T>>,
+    ) -> Result<ComputeCellID, CellID> {
         let mut dep_ids = vec![];
-        let dep_values: Vec<T> = deps
-            .iter()
-            .map(|e| {
-                if let Some(d) = reactor.get(e.get_id()) {
-                    dep_ids.push(e.get_id());
+        let mut dep_values = vec![];
+        let mut is_valid = None;
+
+        for e in deps.iter() {
+            if let Some(d) = reactor.get(e.get_id()) {
+                dep_ids.push(e.get_id());
+                let v = match d {
+                    CellTypes::InputCell(ic) => ic.get_value(),
+                    CellTypes::ComputeCell(cc) => cc.get_value(),
+                };
+                dep_values.push(v);
+            } else {
+                is_valid = Some(*e);
+                break;
+            }
+        }
+
+        if is_valid.is_some() {
+            Err(is_valid.unwrap())
+        } else {
+            let value = f(&dep_values);
+
+            let mut compute_cell = Self {
+                id: get_id(),
+                value,
+                deps: dep_ids,
+                parents: vec![],
+            };
+
+            let id = ComputeCellID(compute_cell.get_id());
+
+            for e in deps.iter() {
+                if let Some(d) = reactor.get_mut(e.get_id()) {
                     match d {
-                        CellTypes::InputCell(ic) => ic.get_value(),
-                        CellTypes::ComputeCell(cc) => cc.get_value(),
-                    }
+                        CellTypes::InputCell(ic) => {
+                            ic.add_parent(CellID::Compute(id));
+                        }
+                        CellTypes::ComputeCell(cc) => {
+                            cc.add_parent(CellID::Compute(id));
+                        }
+                    };
                 }
-            })
-            .collect();
+            }
 
-        let value = f(&dep_values);
-
-	    let mut cc = Self {
-            id: get_id(),
-            value,
-	        deps: dep_ids,
-            parents: vec![],
-        };
-
-	    let id = ComputeCellID(cc.get_id());
-	    reactor.big_vec.push(CellTypes::ComputeCell(cc));
-	    Ok(id)
+            reactor.push(CellTypes::ComputeCell(compute_cell));
+            Ok(id)
+        }
     }
 }
 

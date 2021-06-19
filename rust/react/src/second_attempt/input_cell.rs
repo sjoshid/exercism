@@ -1,5 +1,5 @@
 use crate::get_id;
-use crate::second_attempt::{Cell, CellID, InputCellID};
+use crate::second_attempt::{Cell, CellID, InputCellID, CellTypes};
 
 pub struct InputCell<T> {
     id: usize,
@@ -8,12 +8,15 @@ pub struct InputCell<T> {
 }
 
 impl<T: Copy + PartialEq> InputCell<T> {
-    pub fn new(value: T) -> Self {
-        Self {
+    pub fn new(value: T, reactor: &mut Vec<CellTypes<T>>) -> InputCellID {
+        let ic = Self {
             id: get_id(),
             value,
             parents: vec![],
-        }
+        };
+        let id = InputCellID(ic.get_id());
+        reactor.push(CellTypes::InputCell(ic));
+        id
     }
 }
 

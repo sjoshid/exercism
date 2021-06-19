@@ -72,10 +72,7 @@ impl<T: Copy + PartialEq> Reactor<T> {
 
     // Creates an input cell with the specified initial value, returning its ID.
     pub fn create_input(&mut self, initial: T) -> InputCellID {
-        let mut ic1 = InputCell::new(initial);
-        let id = InputCellID(ic1.get_id());
-        self.big_vec.push(CellTypes::InputCell(ic1));
-        id
+        InputCell::new(initial, &mut self.big_vec)
     }
 
     pub fn create_compute<F: Fn(&[T]) -> T>(
